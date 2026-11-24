@@ -1,0 +1,50 @@
+name: Ray APK Derle
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dosyalari Al
+        uses: actions/checkout@v4
+
+      - name: Node.js Kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Java 17 Kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Web Klasorunu Hazirla
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp oyun.swf www/
+          cp ruffle.js www/
+          cp *.wasm www/
+
+      - name: Capacitor Android Olustur
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: APK Derle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: APK Dosyasini Paketle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ray-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          
